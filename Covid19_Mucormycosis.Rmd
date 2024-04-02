@@ -1,1 +1,323 @@
+---
+title: "Data Analysis"
+author: "Nikhil Sharma, Yaswanth Muthavarapu, Sri Geetha Devi Vegi"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readxl)
+#library(tidymodel)
+library(dplyr)
+library(VennDiagram)
+library(purrr)
+```
+
+
+```{r}
+df_mCAPM <- read_excel("~/CIS 661/project/GSE226677_control_vs_CAM_monocyte.xlsx")
+df_mCOVID <- read_excel("~/CIS 661/project/GSE226677_control_vs_COVID_Monocyte.xlsx")
+df_mMucormycosis <- read_excel("~/CIS 661/project/GSE226677_control_vs_Mucormycosis_monocyte.xlsx")
+```
+
+```{r}
+
+# Convert the 'log2FoldChange' and 'padj' columns to numeric if they are not already
+mCAPM <- df_mCAPM %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj), pvalue = as.numeric(pvalue))
+mCOVID <- df_mCOVID %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj))
+mMucormycosis <- df_mMucormycosis %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj))
+
+# Function to filter for differentially expressed genes
+filter_DEGs <- function(df) {
+  df %>% 
+    filter((log2FoldChange > 1.5 | log2FoldChange <= -1.5) & padj < 0.5) %>%
+    pull(Gene)
+}
+
+# Apply the filtering function to each dataset
+genes_mCAPM <- filter_DEGs(mCAPM)
+genes_mCOVID <- filter_DEGs(mCOVID)
+genes_mMucormycosis <- filter_DEGs(mMucormycosis)
+
+# Generate the Venn diagram
+venn_data <- list(
+  mCAPM = genes_mCAPM,
+  mCOVID19 = genes_mCOVID,
+  mMucormycosis = genes_mMucormycosis
+)
+
+```
+```{r}
+# Load the VennDiagram package
+library(VennDiagram)
+library(grid)
+
+# Assuming your data is set up correctly in the venn_data variable
+
+
+# Define fill colors for the three sets
+fill_colors <- c("#A6CEE3", "#B2DF8A", "#FDBF6F") # Use the colors you prefer
+
+
+# Create the Venn diagram
+venn_plot <- venn.diagram(
+  x = venn_data,
+  category.names = c("CAPM", "COVID-19", "PM"),
+  fill = fill_colors,
+  filename = NULL,
+  alpha = 0.5, # Set transparency level
+  cex = 1.5, # Text size for numbers
+  cat.cex = 1.5, # Text size for category names
+  cat.pos = c(-30, 30, 180), # Adjust the position of each category name
+  cat.dist = c(0.05, 0.05, 0.1), # Distance from the circle center (adjust as needed for each label)
+  cat.fontface = "bold", # Font face for category names
+  cat.col = fill_colors, # Color of category names to match the sets
+  fontface = "bold", # Font face for numbers
+  output = FALSE # Do not output to a file
+)
+
+# Draw the plot on a grid layout
+grid.newpage()
+grid.draw(venn_plot)
+```
+
+
+```{r}
+df_gCAPM <- read_excel("~/CIS 661/project/GSE226677_control_vs_CAM_granulocyte.xlsx")
+df_gCOVID <- read_excel("~/CIS 661/project/GSE226677_control_vs_COVID_granulocyte.xlsx")
+df_gMucormycosis <- read_excel("~/CIS 661/project/GSE226677_control_vs_Mucormycosis_granulocyte.xlsx")
+```
+
+```{r}
+
+# Converting the 'log2FoldChange' and 'padj' columns to numeric if they are not already
+gCAPM <- df_gCAPM %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj), pvalue = as.numeric(pvalue))
+gCOVID <- df_gCOVID %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj))
+gMucormycosis <- df_gMucormycosis %>% mutate(log2FoldChange = as.numeric(log2FoldChange), padj = as.numeric(padj))
+
+# Function to filter for differentially expressed genes
+filter_DEGs <- function(df) {
+  df %>% 
+    filter((log2FoldChange > 1.5 | log2FoldChange <= -1.5) & padj < 0.5) %>%
+    pull(Gene)
+}
+
+# Applying the filtering function to each dataset
+genes_gCAPM <- filter_DEGs(gCAPM)
+genes_gCOVID <- filter_DEGs(gCOVID)
+genes_gMucormycosis <- filter_DEGs(gMucormycosis)
+
+# Generating the Venn diagram
+venn_data <- list(
+  gCAPM = genes_gCAPM,
+  gCOVID19 = genes_gCOVID,
+  gMucormycosis = genes_gMucormycosis
+)
+
+```
+```{r}
+# Loading the VennDiagram package
+library(VennDiagram)
+library(grid)
+
+# Defining fill colors for the three sets
+fill_colors <- c("#A6CEE3", "#B2DF8A", "#FDBF6F") # Use the colors you prefer
+
+
+# Creating the Venn diagram
+venn_plot <- venn.diagram(
+  x = venn_data,
+  category.names = c("CAPM", "COVID-19", "PM"),
+  fill = fill_colors,
+  filename = NULL,
+  alpha = 0.5, # Set transparency level
+  cex = 1.5, # Text size for numbers
+  cat.cex = 1.5, # Text size for category names
+  cat.pos = c(-30, 30, 180), # Adjust the position of each category name
+  cat.dist = c(0.05, 0.05, 0.1), # Distance from the circle center (adjust as needed for each label)
+  cat.fontface = "bold", # Font face for category names
+  cat.col = fill_colors, # Color of category names to match the sets
+  fontface = "bold", # Font face for numbers
+  output = FALSE # Do not output to a file
+)
+
+# Drawing the plot on a grid layout
+grid.newpage()
+grid.draw(venn_plot)
+
+```
+
+
+```{r Volcano A}
+# Define significance threshold
+alpha <- 0.05
+
+# Assuming your dataframe is named df_mCOVID
+
+# Cleaning non-numeric values in log2FoldChange and pvalue columns
+df_gCOVID <- df_gCOVID %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculating -log10(p-value)
+df_gCOVID$minus_log10_pvalue <- -log10(df_gCOVID$pvalue)
+
+# Creating a new column for color based on significance
+df_gCOVID$color <- ifelse(df_gCOVID$pvalue < alpha & df_gCOVID$log2FoldChange > 0, "green",
+                          ifelse(df_gCOVID$pvalue < alpha & df_gCOVID$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_gCOVID, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Including gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+
+```
+
+```{r Volcano B}
+# Define significance threshold
+alpha <- 0.05
+
+# Assuming your dataframe is named df_mCOVID
+
+# Cleaning non-numeric values in log2FoldChange and pvalue columns
+df_mCOVID <- df_mCOVID %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculating -log10(p-value)
+df_mCOVID$minus_log10_pvalue <- -log10(df_mCOVID$pvalue)
+
+# Creating a new column for color based on significance
+df_mCOVID$color <- ifelse(df_mCOVID$pvalue < alpha & df_mCOVID$log2FoldChange > 0, "green",
+                          ifelse(df_mCOVID$pvalue < alpha & df_mCOVID$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_mCOVID, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Include gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+```
+
+```{r Volcano C}
+# Define significance threshold
+alpha <- 0.05
+
+
+# Cleaning non-numeric values in log2FoldChange and pvalue columns
+df_gMucormycosis <- df_gMucormycosis %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculating -log10(p-value)
+df_gMucormycosis$minus_log10_pvalue <- -log10(df_gMucormycosis$pvalue)
+
+# Creating a new column for color based on significance
+df_gMucormycosis$color <- ifelse(df_gMucormycosis$pvalue < alpha & df_gMucormycosis$log2FoldChange > 0, "green",
+                          ifelse(df_gMucormycosis$pvalue < alpha & df_gMucormycosis$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_gMucormycosis, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Including gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+
+```
+
+```{r Volcano D}
+# Define significance threshold
+alpha <- 0.05
+
+# Cleaning non-numeric values in log2FoldChange and pvalue columns
+df_mMucormycosis <- df_mMucormycosis %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculating -log10(p-value)
+df_mMucormycosis$minus_log10_pvalue <- -log10(df_mMucormycosis$pvalue)
+
+# Creating a new column for color based on significance
+df_mMucormycosis$color <- ifelse(df_mMucormycosis$pvalue < alpha & df_mMucormycosis$log2FoldChange > 0, "green",
+                          ifelse(df_mMucormycosis$pvalue < alpha & df_mMucormycosis$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_mMucormycosis, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Including gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+
+```
+
+```{r Volcano E}
+# Define significance threshold
+alpha <- 0.05
+
+
+# Cleaning non-numeric values in log2FoldChange and pvalue columns
+df_gCAPM <- df_gCAPM %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculating -log10(p-value)
+df_gCAPM$minus_log10_pvalue <- -log10(df_gCAPM$pvalue)
+
+# Creating a new column for color based on significance
+df_gCAPM$color <- ifelse(df_gCAPM$pvalue < alpha & df_gCAPM$log2FoldChange > 0, "green",
+                          ifelse(df_gCAPM$pvalue < alpha & df_gCAPM$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_gCAPM, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Including gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+
+```
+
+```{r Volcano F}
+# Define significance threshold
+alpha <- 0.05
+
+
+# Clean non-numeric values in log2FoldChange and pvalue columns
+df_mCAPM <- df_mCAPM %>%
+  mutate(log2FoldChange = as.numeric(log2FoldChange),
+         pvalue = as.numeric(pvalue))
+
+# Calculate -log10(p-value)
+df_mCAPM$minus_log10_pvalue <- -log10(df_mCAPM$pvalue)
+
+# Creating a new column for color based on significance
+df_mCAPM$color <- ifelse(df_mCAPM$pvalue < alpha & df_mCAPM$log2FoldChange > 0, "green",
+                          ifelse(df_mCAPM$pvalue < alpha & df_mCAPM$log2FoldChange < 0, "red", "black"))
+
+# Creating the volcano plot
+ggplot(df_mCAPM, aes(x = log2FoldChange, y = minus_log10_pvalue, color = color)) +
+  geom_point(size = 2) +
+  geom_text(aes(label = Gene_symbol), vjust = 0, hjust = 0, check_overlap = TRUE) +  # Including gene symbols
+  scale_color_manual(values = c("green", "red", "black")) +
+  geom_hline(yintercept = -log10(alpha), linetype = "dashed") +
+  labs(x = "log2 Fold Change", y = "-log10(p-value)", title = "Volcano Plot") +
+  theme_minimal()
+
+```
 
